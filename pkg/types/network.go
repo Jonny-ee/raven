@@ -39,6 +39,7 @@ type Endpoint struct {
 	UnderNAT   bool
 	NATType    string
 	Config     map[string]string
+	ExposeType string
 }
 
 func (e *Endpoint) String() string {

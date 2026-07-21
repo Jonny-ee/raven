@@ -250,6 +250,7 @@ func (c *TunnelEngine) syncGateway(gw *v1beta1.Gateway) {
 		UnderNAT:    aep.UnderNAT,
 		NATType:     aep.NATType,
 		Config:      cfg,
+		ExposeType:  string(gw.Spec.ExposeType),
 	}
 	var isLocalGateway bool
 	defer func() {

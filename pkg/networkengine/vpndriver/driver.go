@@ -24,6 +24,7 @@ import (
 
 	"k8s.io/klog/v2"
 
+	"github.com/openyurtio/api/raven/v1beta1"
 	"github.com/openyurtio/raven/cmd/agent/app/config"
 	"github.com/openyurtio/raven/pkg/types"
 	"github.com/openyurtio/raven/pkg/utils"
@@ -107,7 +108,11 @@ func FindCentralGwFn(network *types.Network) *types.Endpoint {
 	var central *types.Endpoint
 	for i := range candidates {
 		if !candidates[i].UnderNAT {
-			central = candidates[i]
+			if candidates[i].ExposeType == string(v1beta1.ExposeTypeLoadBalancer) || candidates[i].ExposeType == string(v1beta1.ExposeTypePublicIP) {
+				central = candidates[i]
+			} else if central == nil || (central.ExposeType != string(v1beta1.ExposeTypeLoadBalancer) && central.ExposeType != string(v1beta1.ExposeTypePublicIP)) {
+				central = candidates[i]
+			}
 		}
 	}
 	return central
