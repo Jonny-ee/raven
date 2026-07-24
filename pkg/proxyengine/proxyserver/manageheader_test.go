@@ -252,7 +252,7 @@ func Test_isAPIServerRequest(t *testing.T) {
 		},
 		{
 			name:     "portForward request",
-			path:     "/portForward/default/pod1/container1",
+			path:     "/portForward/default/pod1",
 			expected: true,
 		},
 		{
