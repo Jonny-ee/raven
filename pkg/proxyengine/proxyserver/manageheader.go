@@ -220,7 +220,7 @@ func (h *headerManger) getProxyMode(ctx context.Context, nodeName string) (strin
 
 func isAPIServerRequest(r *http.Request) bool {
 	parts := strings.Split(r.URL.Path, "/")
-	if len(parts) < 5 {
+	if len(parts) < 4 {
 		return false
 	}
 	if _, ok := requestsPathPrefix[parts[1]]; ok {
