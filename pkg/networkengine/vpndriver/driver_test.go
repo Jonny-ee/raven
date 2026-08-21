@@ -118,6 +118,52 @@ func TestFindCentralGwFn(t *testing.T) {
 			network: n,
 			expect:  n.LocalEndpoint,
 		},
+		{
+			name: "prioritize loadbalancer",
+			network: &types.Network{
+				LocalEndpoint: &types.Endpoint{
+					PrivateIP: "192.168.1.1",
+					UnderNAT:  false,
+					ExposeType: "",
+				},
+				RemoteEndpoints: map[types.GatewayName]*types.Endpoint{
+					"gw1": {PrivateIP: "192.168.1.2", UnderNAT: false, ExposeType: string(v1beta1.ExposeTypeLoadBalancer)},
+				},
+			},
+			expect: &types.Endpoint{PrivateIP: "192.168.1.2", UnderNAT: false, ExposeType: string(v1beta1.ExposeTypeLoadBalancer)},
+		},
+		{
+			name: "prioritize publicip over local",
+			network: &types.Network{
+				LocalEndpoint: &types.Endpoint{
+					PrivateIP: "192.168.1.1",
+					UnderNAT:  false,
+					ExposeType: "",
+				},
+				RemoteEndpoints: map[types.GatewayName]*types.Endpoint{
+					"gw1": {PrivateIP: "192.168.1.2", UnderNAT: false, ExposeType: string(v1beta1.ExposeTypePublicIP)},
+				},
+			},
+			expect: &types.Endpoint{PrivateIP: "192.168.1.2", UnderNAT: false, ExposeType: string(v1beta1.ExposeTypePublicIP)},
+		},
+		{
+			name: "fallback to valid endpoint if none have prioritize types",
+			network: &types.Network{
+				LocalEndpoint: &types.Endpoint{
+					PrivateIP: "192.168.1.1",
+					UnderNAT:  false,
+					ExposeType: "",
+				},
+				RemoteEndpoints: map[types.GatewayName]*types.Endpoint{
+					"gw1": {PrivateIP: "192.168.1.2", UnderNAT: false, ExposeType: ""},
+				},
+			},
+			// Expect either local or remote since map iteration is non-deterministic in FindCentralGwFn
+			// But LocalEndpoint is always appended first, so if remote doesn't override due to missing type, wait...
+			// "else if central == nil || ..." means central will be overwritten by remote since both have empty ExposeType!
+			// Actually central starts as LocalEndpoint, then Remote is checked. Since central isn't LB/Public, central gets overridden by Remote.
+			expect: &types.Endpoint{PrivateIP: "192.168.1.2", UnderNAT: false, ExposeType: ""},
+		},
 	}
 
 	for _, tt := range tests {
